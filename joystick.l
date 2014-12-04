@@ -53,3 +53,4 @@
        (print ";; l3 button pressed"))
    (if (= (send *joy* :r3-button) 1)
        (print ";; r3 button pressed"))
+))
