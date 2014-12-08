@@ -5,11 +5,14 @@
 	(objects (list *dxl-armed-turtlebot*))
 
 (defun ik-demo
-(warn ";; if stop, then enter e~%")
-(warn ";; h:left, j:down, k:up, l:right, f:forwaed, b:bacl~%")
-(warn ";; n:grasp, m:non-grasp, q:rotate1, w:rotate2")
+  (warn ";; if stop, then enter e~%")
+  (warn ";; h:left, j:down, k:up, l:right, f:forwaed, b:bacl~%")
+  (warn ";; n:grasp, m:non-grasp, q:rotate1, w:rotate2")
+  (&key (use-base nil)
+		(robot *dxl-armed-turtlebot*)	  
+		)
   (let (w)
-    (while t
+	(while t
       (setq w (read-line))
       (cond
        ((equal w "e")

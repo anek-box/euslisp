@@ -1,8 +1,11 @@
-  (send *dxl-armed-turtlebot* :reset-pose ;;初期化
-	(when (boundp '*ri*)
-	  (send *ri* :angle-vector (send *dxl-armed-turtlebot* :angle-vector) 5000)
-	  (send *ri* :wait-interpolation))
-	(objects (list *dxl-armed-turtlebot*))
+(send *dxl-armed-turtlebot* :reset-pose) ;;初期化
+(when (boundp '*ri*)
+  (send *ri* :angle-vector (send *dxl-armed-turtlebot* :angle-vector) 5000)
+  (send *ri* :wait-interpolation))
+(objects (list *dxl-armed-turtlebot*))
+(send *dxl-armed-turtlebot* :gripper :arm :angle-vector #f(50))
+(send *ri* :angle-vector (send *dxl-armed-turtlebot* :angle-vector) 1000 :gripper-controller)
+(send *ri* :wait-interpolation :gripper-controller)
 
 (defun cb-controller (msg);;コールバック
   (progn
@@ -41,8 +44,9 @@
 	      (send (send *dxl-armed-turtlebot* :arm_joint6)
 		    :joint-angle 30));;30度回転
 	  (if (= (elt bt 15) 1);;square-button
-	      (send (send *dxl-armed-turtlebot* :arm_joint6)
-		    :joint-angle -30));;-30度回転
+;;	      (send (send *dxl-armed-turtlebot* :arm_joint6)
+;;		    :joint-angle -30));;-30度回転
+		  (print 1))
 ;;ここも起動しないなら動作部分だけコピペして実行してみる。それで起動したらおそらくコールバック出来てない。
 	  ))
 
