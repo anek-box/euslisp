@@ -1,11 +1,12 @@
 (load "package://roseus/test/joy.l")
 (load "package://dxl_armed_turtlebot/euslisp/dxl-armed-turtlebot-interface.l")
-;(load "package://daisya_euslisp_tutorials/euslisp/daisya.l")
-;(load "package://daisya_euslisp_tutorials/euslisp/irteusext.l")
+(load "package://daisya_euslisp_tutorials/euslisp/daisya.l")
+(load "package://daisya_euslisp_tutorials/euslisp/irteusext.l")
 
 
 (ros::load-ros-manifest "roseus")
 (ros::load-ros-manifest "sensor_msgs")
+(ros::load-ros-manifest "kobuki_msgs")
 
 (ros::roseus "tekito")
 
@@ -19,19 +20,55 @@
 ;(send *ri* :angle-vector (send *dxl-armed-turtlebot* :angle-vector) 1000 :gripper-controller)
 ;(send *ri* :wait-interpolation :gripper-controller)
 
-(defun cb-controller (msg)
+ #|******************************
+  描画周りの初期起動処理
+********************************|#
+(if (not (boundp '*irtviewer*))
+    (setq *irtviewer* (make-irtviewer)))
+(setq *daisya* (instance daisyaclass :init)) 
+(send *daisya* :reset-pose)
+(objects (list *daisya*))
+
+
+;;逆運動学が解きやすい初期姿勢に変更
+(setq robot *daisya*)
+(send robot :reset-pose)
+;(when (boundp '*ri*)
+;  (send *ri* :angle-vector (send robot :angle-vector) 5000)
+;  (send *ri* :wait-interpolation))
+;(objects (list robot))
+
+
+(defclass ctrl-class
+  :super propertied-object
+  :slots ())
+(defmethod ctrl-class
+(:init ()
+	   (setq goal-endcoords
+			 (make-cascoords :pos (send (send robot :arm :end-coords 
+											  :copy-worldcoords) :worldpos)))
+	   (ros::subscribe "/joy" sensor_msgs::Joy #'send self :cb-controller))
+(:cb-controller (msg)
   (progn
 ;  (ros::rate 10)
 	(print "cb-controller hajime")
 	(setq bt (send msg :buttons))
+	(print (elt bt 13))
 	(if (= (elt bt 13) 1)
-		(print ";; circle button pressed")
-	  (send *ri* :start-grasp))
-	(if (= (elt bt 14) 1)
-		(print ";; cross button pressed")
-     (send *ri* :stop-grasp))
-;   (if (= (send msg :square-button) 1)
-;       (print ";; square button pressed"))
+		(progn
+		  (print ";; circle button pressed")
+		  ;;(send *ri* :start-grasp)
+		  )
+	  (if (= (elt bt 14) 1)
+		  (progn
+			(print ";; cross button pressed")
+			;;(send *ri* :stop-grasp)
+			)))
+   (if (= (elt bt 15) 1)
+	   (progn
+		 (print ";; square button pressed")
+		 (send goal-endcoords :locate (float-vector 0 0 10)))
+	 nil)
 ;   (if (= (send msg :triangle-button) 1)
 ;       (print ";; triangle button pressed"))
 ;   (if (= (send msg :l1-button) 1)
@@ -62,10 +99,11 @@
 ;       (print ";; l3 button pressed"))
 ;   (if (= (send msg :r3-button) 1)
 ;       (print ";; r3 button pressed"))
-))
+)))
+(setq m (instance ctrl-class :init))
 
-(ros::subscribe "/joy" sensor_msgs::Joy #'cb-controller)
 
-(while (ros::ok)
+(do-until-key
   (ros::spin-once)
-  (ros::sleep))
+;  (ros::sleep)
+)
